@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: margin
+    runtime: static
+    buildCommand: echo "no build step"
+    staticPublishPath: .
+    headers:
+      # The service worker must never be served stale, or updates never land.
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate
+      - path: /manifest.webmanifest
+        name: Cache-Control
+        value: no-cache
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=3600

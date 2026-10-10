@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0f1115">
+<meta name="description" content="Offline markdown reader with highlights, margin notes and resume-where-you-left-off.">
+<title>Margin</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="stylesheet" href="./assets/app.css">
+</head>
+<body>
+
+<header id="bar">
+  <button class="ic" id="btnLibrary" aria-label="Library" title="Library">
+    <svg viewBox="0 0 24 24"><path d="M4 5h4v14H4zM10 5h3v14h-3zM15.5 5.6l3 .8-3.6 13.3-2.9-.8z"/></svg>
+  </button>
+  <h1 id="docTitle">Margin</h1>
+  <button class="ic" id="btnToc" aria-label="Contents" title="Contents">
+    <svg viewBox="0 0 24 24"><path d="M4 6h2v2H4zM8 6h12v2H8zM4 11h2v2H4zM8 11h12v2H8zM4 16h2v2H4zM8 16h12v2H8z"/></svg>
+  </button>
+  <button class="ic" id="btnFind" aria-label="Find in document" title="Find">
+    <svg viewBox="0 0 24 24"><path d="M10.5 3a7.5 7.5 0 1 0 4.6 13.4l4.2 4.2 1.4-1.4-4.2-4.2A7.5 7.5 0 0 0 10.5 3zm0 2a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11z"/></svg>
+  </button>
+  <button class="ic" id="btnNotes" aria-label="Notes" title="Notes">
+    <svg viewBox="0 0 24 24"><path d="M5 3h9l5 5v13H5zM13 4.5V9h4.5zM7.5 12h9v1.6h-9zM7.5 15.4h9V17h-9z"/></svg>
+  </button>
+  <button class="ic" id="btnSettings" aria-label="Reading settings" title="Reading settings">
+    <svg viewBox="0 0 24 24"><path d="M6 4h2v7H6zM5 12h4v2H5zM6 15h2v5H6zM16 4h2v5h-2zM15 10h4v2h-4zM16 13h2v7h-2z"/></svg>
+  </button>
+</header>
+
+<div id="progress"><i></i></div>
+
+<div id="selOverlay" aria-hidden="true"></div>
+
+<main>
+  <article id="reader" aria-live="polite"></article>
+</main>
+
+<nav id="rail" aria-hidden="true"><div id="railThumb"></div></nav>
+
+<section id="welcome">
+  <div class="w-inner">
+    <p class="eyebrow">Offline reader</p>
+    <h2>Margin</h2>
+    <p class="lede">Open a markdown file from your phone. It stays on your device — highlights, notes and your last position are saved beside it, never inside it.</p>
+    <button class="cont" id="continueCard" hidden></button>
+    <div class="w-actions">
+      <button class="btn primary" id="btnOpen">Open a .md file</button>
+      <button class="btn" id="btnPaste">Paste markdown</button>
+    </div>
+    <p class="hint" id="dropHint">You can also drop a file anywhere on this page.</p>
+    <h3 class="w-head" id="recentHead" hidden>Your files</h3>
+    <ul class="w-list" id="recentList"></ul>
+  </div>
+</section>
+
+<input type="file" id="file" accept=".md,.markdown,.mdown,.mkd,.txt,text/markdown,text/plain" hidden>
+
+<!-- selection toolbar -->
+<div id="selBar" role="toolbar" aria-label="Selection actions" hidden>
+  <button class="sw" data-color="1" aria-label="Highlight yellow"></button>
+  <button class="sw" data-color="2" aria-label="Highlight mint"></button>
+  <button class="sw" data-color="3" aria-label="Highlight sky"></button>
+  <button class="sw" data-color="4" aria-label="Highlight rose"></button>
+  <span class="sep"></span>
+  <button class="tb" id="selNote">Note</button>
+  <button class="tb" id="selCopy">Copy</button>
+</div>
+
+<!-- find bar -->
+<div id="findBar" hidden>
+  <input id="findInput" type="search" placeholder="Find in document" autocomplete="off" enterkeyhint="search">
+  <span id="findCount">0/0</span>
+  <button class="ic sm" id="findPrev" aria-label="Previous match"><svg viewBox="0 0 24 24"><path d="M12 8l6 8H6z"/></svg></button>
+  <button class="ic sm" id="findNext" aria-label="Next match"><svg viewBox="0 0 24 24"><path d="M12 16l-6-8h12z"/></svg></button>
+  <button class="ic sm" id="findClose" aria-label="Close find"><svg viewBox="0 0 24 24"><path d="M6.4 5l12.6 12.6-1.4 1.4L5 6.4z"/><path d="M19 6.4L6.4 19 5 17.6 17.6 5z"/></svg></button>
+</div>
+
+<div id="scrim" hidden></div>
+
+<!-- sheets -->
+<aside class="sheet" id="sheetSettings" hidden aria-label="Reading settings">
+  <div class="grab"></div>
+  <div class="s-body">
+    <h3>Reading</h3>
+
+    <div class="row"><label>Theme</label>
+      <div class="seg" id="segTheme">
+        <button data-v="auto">Auto</button><button data-v="light">Paper</button><button data-v="sepia">Sepia</button><button data-v="dark">Dark</button><button data-v="black">Black</button>
+      </div>
+    </div>
+
+    <div class="row"><label for="selFont">Typeface</label>
+      <select id="selFont">
+        <option value="sans">Sans</option>
+        <option value="serif">Serif</option>
+        <option value="georgia">Georgia</option>
+        <option value="slab">Slab</option>
+        <option value="cond">Condensed</option>
+        <option value="mono">Monospace</option>
+      </select>
+    </div>
+
+    <div class="row"><label for="rngSize">Text size <b id="vSize"></b></label>
+      <input type="range" id="rngSize" min="13" max="34" step="1"></div>
+
+    <div class="row"><label for="rngLh">Line height <b id="vLh"></b></label>
+      <input type="range" id="rngLh" min="120" max="220" step="5"></div>
+
+    <div class="row"><label for="rngW">Line width <b id="vW"></b></label>
+      <input type="range" id="rngW" min="24" max="80" step="1"></div>
+
+    <div class="row"><label for="rngSp">Letter spacing <b id="vSp"></b></label>
+      <input type="range" id="rngSp" min="-2" max="12" step="1"></div>
+
+    <div class="row sw-row"><label for="ckJustify">Justify text</label><input type="checkbox" id="ckJustify"></div>
+    <div class="row sw-row"><label for="ckWrap">Wrap long code lines</label><input type="checkbox" id="ckWrap"></div>
+    <div class="row sw-row"><label for="ckHide">Hide bar while reading</label><input type="checkbox" id="ckHide"></div>
+    <div class="row sw-row"><label for="ckRail">Show note rail</label><input type="checkbox" id="ckRail"></div>
+    <div class="row sw-row"><label for="ckSelect">In-app text selection</label><input type="checkbox" id="ckSelect"></div>
+    <div class="row sw-row"><label for="ckResume">Reopen last file on launch</label><input type="checkbox" id="ckResume"></div>
+    <p class="tip">Pinch with two fingers on the page to resize text — lines reflow instead of scrolling sideways.</p>
+    <p class="tip">In-app selection replaces your phone's own selection menu, so long-pressing text opens Margin's note bar instead of the system Search / Share popup. Turn it off to get the standard menu back.</p>
+  </div>
+</aside>
+
+<aside class="sheet" id="sheetToc" hidden aria-label="Contents">
+  <div class="grab"></div>
+  <div class="s-body"><h3>Contents</h3><div id="tocList" class="list"></div></div>
+</aside>
+
+<aside class="sheet" id="sheetNotes" hidden aria-label="Notes">
+  <div class="grab"></div>
+  <div class="s-body">
+    <h3>Notes <span class="count" id="noteCount"></span>
+      <button class="link" id="btnExportNotes">Export</button></h3>
+    <div id="notesList" class="list"></div>
+  </div>
+</aside>
+
+<aside class="sheet" id="sheetLib" hidden aria-label="Library">
+  <div class="grab"></div>
+  <div class="s-body">
+    <h3>Library <button class="link" id="btnAdd">Add file</button></h3>
+    <div id="libList" class="list"></div>
+    <h3 class="mt">This file</h3>
+    <div id="docInfo" class="info"></div>
+    <h3 class="mt">Data</h3>
+    <div class="btnrow">
+      <button class="btn sm" id="btnBackup">Back up all data</button>
+      <button class="btn sm" id="btnRestore">Restore backup</button>
+    </div>
+    <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+    <p class="tip">Everything lives in this browser only. Back up before clearing site data.</p>
+
+    <h3 class="mt">Version</h3>
+    <div id="verInfo" class="info">Checking…</div>
+    <div class="btnrow"><button class="btn sm" id="btnUpdate">Check for update</button></div>
+  </div>
+</aside>
+
+<aside class="sheet" id="sheetNote" hidden aria-label="Note">
+  <div class="grab"></div>
+  <div class="s-body">
+    <h3>Note</h3>
+    <blockquote id="noteQuote"></blockquote>
+    <div class="chips" id="noteColors">
+      <button class="sw" data-color="1" aria-label="Yellow"></button>
+      <button class="sw" data-color="2" aria-label="Mint"></button>
+      <button class="sw" data-color="3" aria-label="Sky"></button>
+      <button class="sw" data-color="4" aria-label="Rose"></button>
+    </div>
+    <textarea id="noteText" rows="5" placeholder="Write your note"></textarea>
+    <div class="btnrow">
+      <button class="btn primary" id="noteSave">Save note</button>
+      <button class="btn danger" id="noteDelete">Remove</button>
+    </div>
+  </div>
+</aside>
+
+<aside class="sheet" id="sheetPaste" hidden aria-label="Paste markdown">
+  <div class="grab"></div>
+  <div class="s-body">
+    <h3>Paste markdown</h3>
+    <input id="pasteName" placeholder="File name" value="pasted.md">
+    <textarea id="pasteText" rows="10" placeholder="# Paste your markdown here"></textarea>
+    <div class="btnrow"><button class="btn primary" id="pasteGo">Open it</button></div>
+  </div>
+</aside>
+
+<div id="toast" hidden></div>
+
+<script src="./vendor/marked.min.js"></script>
+<script src="./vendor/purify.min.js"></script>
+<script src="./assets/app.js"></script>
+</body>
+</html>
